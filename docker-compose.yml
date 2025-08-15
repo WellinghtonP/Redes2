@@ -9,7 +9,8 @@ services:
     ports:
       - "80:80"
     depends_on:
-      - app
+      app: # MODIFICADO: Adicionada a condição de 'healthy'
+        condition: service_healthy
     networks:
       - app-network
     restart: unless-stopped
@@ -36,6 +37,15 @@ services:
     networks:
       - app-network
     restart: unless-stopped
+    # ADICIONADO: Healthcheck para a aplicação
+    healthcheck:
+      # Tenta acessar a aplicação via curl. Você pode precisar de 'apk add curl' no seu Dockerfile do app.
+      # Se sua app tiver uma rota específica de healthcheck (ex: /health), use-a.
+      test: ["CMD-SHELL", "curl -f http://localhost:3000 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s # Dá 30 segundos para a app iniciar antes de começar a verificar
 
   # Camada de Dados - PostgreSQL
   postgres:
