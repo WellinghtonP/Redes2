@@ -3,13 +3,13 @@ version: '3.8'
 services:
   # Camada de Apresentação - Nginx
   nginx:
-    build: 
+    build:
       context: ./nginx
     container_name: nginx-container
     ports:
       - "80:80"
     depends_on:
-      app: # MODIFICADO: Adicionada a condição de 'healthy'
+      app:
         condition: service_healthy
     networks:
       - app-network
@@ -17,7 +17,7 @@ services:
 
   # Camada Lógica - Aplicação Node.js
   app:
-    build: 
+    build:
       context: ./app
       args:
         # URL do repositório Git (clonado durante o build)
@@ -37,15 +37,12 @@ services:
     networks:
       - app-network
     restart: unless-stopped
-    # ADICIONADO: Healthcheck para a aplicação
     healthcheck:
-      # Tenta acessar a aplicação via curl. Você pode precisar de 'apk add curl' no seu Dockerfile do app.
-      # Se sua app tiver uma rota específica de healthcheck (ex: /health), use-a.
-      test: ["CMD-SHELL", "curl -f http://localhost:3000 || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s # Dá 30 segundos para a app iniciar antes de começar a verificar
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   # Camada de Dados - PostgreSQL
   postgres:
@@ -68,6 +65,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
 
   # Adminer - Interface web para gerenciar o banco (opcional)
   adminer:
@@ -78,7 +76,8 @@ services:
     networks:
       - app-network
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     restart: unless-stopped
 
 networks:
