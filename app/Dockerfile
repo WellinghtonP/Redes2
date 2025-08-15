@@ -1,7 +1,7 @@
 FROM node:18-alpine
 
-# Instalar git para clonar repositório
-RUN apk add --no-cache git
+# Adiciona git e curl
+RUN apk add --no-cache git curl
 
 # Definir diretório de trabalho
 WORKDIR /usr/src/app
