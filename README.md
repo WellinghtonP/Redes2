@@ -60,8 +60,8 @@ graph TB
 ### 1️⃣ Clonar e Iniciar
 ```bash
 # Clonar o repositório
-git clone <repository-url>
-cd projeto-redes2
+git clone https://github.com/WellinghtonP/Redes2.git
+cd Redes2
 
 # Iniciar todos os serviços
 docker-compose up -d
