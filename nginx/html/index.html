@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usuarios</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0e27;
+            --bg-secondary: #151935;
+            --accent: #00d4ff;
+            --accent-dark: #0099cc;
+            --text-primary: #e0e6ff;
+            --text-secondary: #8892b0;
+            --error: #ff0055;
+            --success: #00ff88;
+            --border: rgba(0, 212, 255, 0.2);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, #1a1f3a 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(0, 212, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 50%, rgba(0, 153, 204, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            position: relative;
+            z-index: 2;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            animation: fadeInDown 0.8s ease;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 300;
+            letter-spacing: 3px;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            letter-spacing: 2px;
+        }
+
+        .form-section {
+            background: rgba(21, 25, 53, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            animation: fadeIn 1s ease;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .form-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        input {
+            flex: 1;
+            min-width: 200px;
+            padding: 12px 20px;
+            background: rgba(10, 14, 39, 0.6);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+        }
+
+        input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        button {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+            border: none;
+            border-radius: 8px;
+            color: var(--bg-primary);
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            transition: left 0.5s ease;
+        }
+
+        button:hover::before {
+            left: 100%;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: rgba(21, 25, 53, 0.4);
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border: 1px solid var(--border);
+            animation: fadeIn 1.2s ease;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.offline {
+            background: var(--error);
+            animation: none;
+        }
+
+        .users-grid {
+            display: grid;
+            gap: 20px;
+            animation: fadeInUp 1s ease;
+        }
+
+        .user-card {
+            background: rgba(21, 25, 53, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .user-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .user-card:hover::before {
+            left: 100%;
+        }
+
+        .user-card:hover {
+            transform: translateX(5px);
+            border-color: var(--accent);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.2);
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-name {
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+            color: var(--accent);
+        }
+
+        .user-email {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .user-id {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            margin-top: 5px;
+            font-family: monospace;
+        }
+
+        .delete-btn {
+            padding: 8px 20px;
+            background: rgba(255, 0, 85, 0.2);
+            border: 1px solid var(--error);
+            color: var(--error);
+            font-size: 0.9rem;
+        }
+
+        .delete-btn:hover {
+            background: var(--error);
+            color: white;
+            box-shadow: 0 5px 20px rgba(255, 0, 85, 0.4);
+        }
+
+        .message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            animation: slideIn 0.5s ease;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .message.success {
+            background: rgba(0, 255, 136, 0.2);
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+
+        .message.error {
+            background: rgba(255, 0, 85, 0.2);
+            border: 1px solid var(--error);
+            color: var(--error);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2rem; }
+            .form-group { flex-direction: column; }
+            input { min-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Trabalho de Redes de Computadores II</h1>
+            <span class="subtitle">Wellinghton Fernando Armoa Pimenta, Lucas Costaneski e Eduardo de Oliveira Campos</span>
+        </header>
+
+        <div class="status-bar">
+            <div class="status-indicator">
+                <span class="status-dot" id="statusDot"></span>
+                <span id="statusText">Conectando...</span>
+            </div>
+            <div id="userCount">0 usuários</div>
+        </div>
+
+        <div class="form-section">
+            <h2 style="margin-bottom: 20px; color: var(--accent); font-weight: 300;">Buscar Usuário por ID</h2>
+            <div class="form-group">
+                <input type="number" id="searchId" placeholder="Digite o ID do usuário" min="1">
+                <button type="button" onclick="searchUserById()">Buscar</button>
+                <button type="button" onclick="clearSearch()">Limpar</button>
+            </div>
+            <div id="searchResult" style="margin-top: 20px;"></div>
+        </div>
+
+        <div class="form-section">
+            <h2 style="margin-bottom: 20px; color: var(--accent); font-weight: 300;">Adicionar Novo Usuário</h2>
+            <form id="userForm" class="form-group">
+                <input type="text" id="nome" placeholder="Nome" required>
+                <input type="email" id="email" placeholder="Email" required>
+                <button type="submit">Adicionar</button>
+            </form>
+        </div>
+
+        <div id="usersContainer" class="users-grid">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Carregando usuários...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost/api';
+        
+        // Elementos DOM
+        const userForm = document.getElementById('userForm');
+        const usersContainer = document.getElementById('usersContainer');
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
+        const userCount = document.getElementById('userCount');
+        const nomeInput = document.getElementById('nome');
+        const emailInput = document.getElementById('email');
+        const searchIdInput = document.getElementById('searchId');
+        const searchResult = document.getElementById('searchResult');
+
+        // Verificar status da API
+        async function checkStatus() {
+            try {
+                const response = await fetch(`${API_URL}/status`);
+                if (response.ok) {
+                    statusDot.classList.remove('offline');
+                    statusText.textContent = 'API Online';
+                } else {
+                    throw new Error('API offline');
+                }
+            } catch (error) {
+                statusDot.classList.add('offline');
+                statusText.textContent = 'API Offline';
+            }
+        }
+
+        // Carregar usuários
+        async function loadUsers() {
+            try {
+                usersContainer.innerHTML = `
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Carregando usuários...</p>
+                    </div>
+                `;
+
+                const response = await fetch(`${API_URL}/usuarios`);
+                const data = await response.json();
+                
+                // A API retorna {total: number, usuarios: array}
+                const users = data.usuarios || [];
+                const total = data.total || 0;
+                
+                userCount.textContent = `${total} usuário${total !== 1 ? 's' : ''}`;
+                
+                if (users.length === 0) {
+                    usersContainer.innerHTML = `
+                        <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                            <p>Nenhum usuário cadastrado</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                usersContainer.innerHTML = users.map(user => `
+                    <div class="user-card">
+                        <div class="user-info">
+                            <div class="user-name">${user.nome}</div>
+                            <div class="user-email">${user.email}</div>
+                            <div class="user-id">ID: ${user.id}</div>
+                        </div>
+                        <button class="delete-btn" onclick="deleteUser(${user.id})">Deletar</button>
+                    </div>
+                `).join('');
+            } catch (error) {
+                showMessage('Erro ao carregar usuários', 'error');
+                usersContainer.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: var(--error);">
+                        <p>Erro ao carregar usuários</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Adicionar usuário
+        userForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const userData = {
+                nome: nomeInput.value.trim(),
+                email: emailInput.value.trim()
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/usuarios`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(userData)
+                });
+
+                if (response.ok) {
+                    showMessage('Usuário adicionado com sucesso!', 'success');
+                    userForm.reset();
+                    loadUsers();
+                } else {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Erro ao adicionar usuário');
+                }
+            } catch (error) {
+                showMessage(error.message || 'Erro ao adicionar usuário', 'error');
+            }
+        });
+
+        // Deletar usuário
+        async function deleteUser(id) {
+            if (!confirm('Tem certeza que deseja deletar este usuário?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/usuarios/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    showMessage('Usuário deletado com sucesso!', 'success');
+                    loadUsers();
+                } else {
+                    throw new Error('Erro ao deletar usuário');
+                }
+            } catch (error) {
+                showMessage('Erro ao deletar usuário', 'error');
+            }
+        }
+
+        // Buscar usuário por ID
+        async function searchUserById() {
+            const id = searchIdInput.value.trim();
+            
+            if (!id) {
+                showMessage('Digite um ID válido', 'error');
+                return;
+            }
+
+            try {
+                searchResult.innerHTML = `
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Buscando usuário...</p>
+                    </div>
+                `;
+
+                const response = await fetch(`${API_URL}/usuarios/${id}`);
+                
+                if (response.status === 404) {
+                    searchResult.innerHTML = `
+                        <div style="text-align: center; padding: 20px; color: var(--text-secondary);">
+                            <p>Usuário com ID ${id} não encontrado</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                if (!response.ok) {
+                    throw new Error('Erro ao buscar usuário');
+                }
+
+                const user = await response.json();
+                
+                searchResult.innerHTML = `
+                    <div class="user-card">
+                        <div class="user-info">
+                            <div class="user-name">${user.nome}</div>
+                            <div class="user-email">${user.email}</div>
+                            <div class="user-id">ID: ${user.id}</div>
+                            <div style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 5px;">
+                                Criado em: ${new Date(user.criado_em).toLocaleString('pt-BR')}
+                            </div>
+                        </div>
+                        <button class="delete-btn" onclick="deleteUser(${user.id})">Deletar</button>
+                    </div>
+                `;
+            } catch (error) {
+                showMessage('Erro ao buscar usuário', 'error');
+                searchResult.innerHTML = `
+                    <div style="text-align: center; padding: 20px; color: var(--error);">
+                        <p>Erro ao buscar usuário</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Limpar busca
+        function clearSearch() {
+            searchIdInput.value = '';
+            searchResult.innerHTML = '';
+        }
+
+        // Mostrar mensagem
+        function showMessage(text, type) {
+            const message = document.createElement('div');
+            message.className = `message ${type}`;
+            message.textContent = text;
+            document.body.appendChild(message);
+
+            setTimeout(() => {
+                message.remove();
+            }, 3000);
+        }
+
+        // Inicializar
+        checkStatus();
+        loadUsers();
+        
+        // Atualizar status a cada 30 segundos
+        setInterval(checkStatus, 30000);
+    </script>
+</body>
+</html>
