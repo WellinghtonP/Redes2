@@ -20,20 +20,41 @@ const pool = new Pool({
   password: process.env.DB_PASSWORD
 });
 
-// Função para criar tabela se não existir
+// Função para criar tabela se não existir com retry
 async function initDatabase() {
-  try {
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS usuarios (
-        id SERIAL PRIMARY KEY,
-        nome VARCHAR(100) NOT NULL,
-        email VARCHAR(100) UNIQUE NOT NULL,
-        criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-    console.log('✅ Banco de dados inicializado com sucesso');
-  } catch (error) {
-    console.error('❌ Erro ao inicializar banco de dados:', error);
+  const maxRetries = 10;
+  let retries = 0;
+  
+  while (retries < maxRetries) {
+    try {
+      console.log(`🔄 Tentativa ${retries + 1}/${maxRetries} de conectar ao banco...`);
+      
+      // Testar conexão primeiro
+      await pool.query('SELECT NOW()');
+      
+      // Criar tabela se conexão OK
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS usuarios (
+          id SERIAL PRIMARY KEY,
+          nome VARCHAR(100) NOT NULL,
+          email VARCHAR(100) UNIQUE NOT NULL,
+          criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+      console.log('✅ Banco de dados inicializado com sucesso');
+      return;
+    } catch (error) {
+      retries++;
+      console.error(`❌ Erro ao inicializar banco (tentativa ${retries}):`, error.message);
+      
+      if (retries < maxRetries) {
+        console.log(`⏳ Aguardando 5 segundos antes da próxima tentativa...`);
+        await new Promise(resolve => setTimeout(resolve, 5000));
+      } else {
+        console.error('💥 Número máximo de tentativas excedido. Verifique a conexão com o banco.');
+        process.exit(1);
+      }
+    }
   }
 }
 
