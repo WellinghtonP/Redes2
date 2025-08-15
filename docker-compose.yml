@@ -19,8 +19,8 @@ services:
     build: 
       context: ./app
       args:
-        # Substitua pela URL do seu repositório Git
-        GIT_REPO: https://github.com/seu-usuario/seu-repositorio.git
+        # URL do repositório Git (clonado durante o build)
+        GIT_REPO: https://github.com/WellinghtonP/Redes2.git
     container_name: app-container
     environment:
       # Variáveis de ambiente para conexão com o banco
@@ -36,10 +36,6 @@ services:
     networks:
       - app-network
     restart: unless-stopped
-    volumes:
-      # Volume para desenvolvimento (comentar em produção)
-      - ./app:/usr/src/app
-      - /usr/src/app/node_modules
 
   # Camada de Dados - PostgreSQL
   postgres:
